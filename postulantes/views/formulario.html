@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Postulante</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <!-- Custom CSS -->
+  <style>
+    /* Agregar en tu archivo CSS */
+    .is-invalid {
+      border-color: #dc3545 !important;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right calc(0.375em + 0.1875rem) center;
+      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .mayusculas {
+      text-transform: uppercase;
+    }
+
+    .form-section {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section h3 {
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .requisitos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+
+    #registroForm {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-person-plus"></i> Registro de Postulante</h2>
+          </div>
+
+          <div class="card-body">
+
+            <!-- Verificación -->
+            <div class="form-section" id="seccion-verificacion">
+              <h3><i class="bi bi-search"></i> Verificar Postulante</h3>
+              <div class="card-body">
+                <p>TOME EN CUENTA QUE LA POSTULACION SOLO SE PUEDE REALIZAR UNA SOLA VEZ, VERIFIQUE QUE LOS DATOS
+                  INTRODUCIDOS SEAN LOS CORRECTOS. </p>
+              </div>
+              <form id="verificarForm" class="row g-3">
+                <div class="col-md-6">
+                  <label for="cedula_identidad" class="form-label">Cédula de Identidad <span
+                      class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="cedula_identidad" name="cedula_identidad" required
+                    pattern="[0-9]{7,9}" title="La cédula debe contener entre 7 y 9 dígitos numéricos" maxlength="9"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 9)">
+                </div>
+                <div class="col-md-3">
+                  <label for="complemento" class="form-label">Complemento</label>
+                  <input type="text" class="form-control" id="complemento" name="complemento">
+                </div>
+                <div class="col-md-3">
+                  <label for="expedicion" class="form-label">Expedición <span class="text-danger">*</span></label>
+                  <select class="form-select" id="expedicion" name="expedicion" required>
+                    <option value="" selected disabled>Seleccione...</option>
+                    <option value="LP">LP - La Paz</option>
+                    <option value="CB">CB - Cochabamba</option>
+                    <option value="SC">SC - Santa Cruz</option>
+                    <option value="OR">OR - Oruro</option>
+                    <option value="PT">PT - Potosí</option>
+                    <option value="TJ">TJ - Tarija</option>
+                    <option value="CH">CH - Chuquisaca</option>
+                    <option value="BN">BN - Beni</option>
+                    <option value="PD">PD - Pando</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary" id="btn_verificar" name="btn_verificar">
+                    <i class="bi bi-check-circle"></i> Verificar
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Mensajes -->
+            <div id="mensaje" class="d-none alert"></div>
+
+            <!-- Registro (oculto inicialmente) -->
+            <form id="registroForm" class="d-none" enctype="multipart/form-data" class="mayusculas">
+              <div class="form-section">
+                <h3><i class="bi bi-person-lines-fill"></i> Datos Personales</h3>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+" title="Solo se permiten letras"
+                      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="apellidoPaterno" class="form-label">Apellido Paterno</label>
+                    <input type="text" class="form-control" id="apellidoPaterno" name="apellidoPaterno"
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ\s]*" title="Solo se permiten letras"
+                      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="apellidoMaterno" class="form-label">Apellido Materno</label>
+                    <input type="text" class="form-control" id="apellidoMaterno" name="apellidoMaterno"
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ\s]*" title="Solo se permiten letras"
+                      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento <span
+                        class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" required
+                      max="2005-08-17" title="Debe ser mayor de edad (nacido antes del 17/08/2005)">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="gradoInstruccion" class="form-label">Grado de instrucción <span
+                        class="text-danger">*</span></label>
+                    <select class="form-select" id="gradoInstruccion" name="gradoInstruccion" required>
+                      <option value="" selected disabled>Seleccione...</option>
+                      <option value="BACHILLER">BACHILLER</option>
+                      <option value="TECNICO MEDIO">TECNICO MEDIO</option>
+                      <option value="TECNICO SUPERIOR">TECNICO SUPERIOR</option>
+                      <option value="UNIVERSITARIO">UNIVERSITARIO</option>
+                      <option value="LICENCIATURA">LICENCIATURA</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="carrera" class="form-label">Carrera</label>
+                    <input type="text" class="form-control" id="carrera" name="carrera" disabled>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-house-door"></i> Dirección</h3>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label for="ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ciudad" name="ciudad" required
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+" title="Solo se permiten letras"
+                      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="zona" class="form-label">Zona <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="zona" name="zona" required
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ0-9\s]+" title="Solo se permiten letras, números y espacios">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="calleAvenida" class="form-label">Calle/Avenida <span
+                        class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="calleAvenida" name="calleAvenida" required
+                      pattern="[A-Za-zÁÉÍÓÚáéíóúñÑ0-9\s]+" title="Solo se permiten letras, números y espacios">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="numeroDomicilio" class="form-label">Nro Domicilio <span
+                        class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="numeroDomicilio" name="numeroDomicilio" required
+                      maxlength="5" pattern="[0-9A-Za-z]+" title="Solo números (máximo 5 dígitos)"
+                      oninput="this.value = this.value.replace(/[^0-9A-Za-z]/g, '').substring(0, 5)">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-telephone"></i> Contacto</h3>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="email" name="email" required
+                      title="Ingrese un correo electrónico válido">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="celular" class="form-label">Celular <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="celular" name="celular" required pattern="[6-7][0-9]{7}"
+                      title="Número celular válido (60000000-79999999)" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, ''); 
+                                    if(this.value.length > 0 && !/^[6-7]/.test(this.value)) { 
+                                      this.value = ''; 
+                                      showToast('El celular debe comenzar con 6 o 7', 'warning'); 
+                                    }
+                                    if(this.value.length > 8) { 
+                                      this.value = this.value.substring(0, 8); 
+                                    }">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-phone"></i> Dispositivo Móvil</h3>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="marcaCelular" class="form-label">Marca del Celular</label>
+                    <input type="text" class="form-control" id="marcaCelular" name="marcaCelular" maxlength="30"
+                      oninput="if(this.value.length > 30) { this.value = this.value.substring(0, 30); }">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="modeloCelular" class="form-label">Modelo del Celular</label>
+                    <input type="text" class="form-control" id="modeloCelular" name="modeloCelular" maxlength="30"
+                      oninput="if(this.value.length > 30) { this.value = this.value.substring(0, 30); }">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-building"></i> Recinto Electoral</h3>
+                <div class="row g-3">
+                  <div class="row-g3">
+                    <p>En el mapa seleccione el recinto en el cual desea postular para operador SIREPRE excepto aquellos
+                      recintos RESTRINGIDO (Cárceles)</p>
+                    <a href="https://www.google.com/maps/d/edit?mid=1LKoP7ACvqE5ZcDLJ4pz7Hl3JNpTUrcs&usp=sharing"
+                      target="_blank">
+                      <p type="submit" class="btn btn-primary">
+                        <i class="bi"></i> Abrir Mapa de Recintos
+                      </p>
+                    </a>
+                  </div>
+                  <div class="row">
+                    <img src="img/recinto.jpg" alt="auto">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="tipoPostulacion" class="form-label">Tipo de Postulación <span
+                        class="text-danger">*</span></label>
+                    <select class="form-select" id="tipoPostulacion" name="tipoPostulacion" required>
+                      <option value="" selected disabled>Seleccione...</option>
+                      <option value="OPERADOR DE TRANSMISION SIREPRE URBANO">OPERADOR DE TRANSMISIÓN SIREPRE URBANO
+                      </option>
+                      <option value="OPERADOR DE TRANSMISION SIREPRE PROVINCIA">OPERADOR DE TRANSMISION SIREPRE
+                        PROVINCIA</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="idRecinto" class="form-label">ID Recinto <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="idRecinto" name="idRecinto" required
+                      pattern="[0-9]{1}-[0-9]{4}-[0-9]{5}" title="Formato: X-XXXX-XXXXX (donde X es dígito)"
+                      placeholder="X-XXXX-XXXXX" oninput="let value = this.value.replace(/[^0-9-]/g, '');
+                                    if(value.length > 1 && value.charAt(1) !== '-') {
+                                      value = value.substring(0, 1) + '-' + value.substring(1);
+                                    }
+                                    if(value.length > 6 && value.charAt(6) !== '-') {
+                                      value = value.substring(0, 6) + '-' + value.substring(6);
+                                    }
+                                    if(value.length > 12) {
+                                      value = value.substring(0, 12);
+                                    }
+                                    this.value = value;">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="nombreRecinto" class="form-label">Nombre del Recinto<span
+                        class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nombreRecinto" name="nombreRecinto" required
+                      maxlength="250">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="municipioRecinto" class="form-label">Municipio del Recinto<span
+                        class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="municipioRecinto" name="municipioRecinto" required
+                      maxlength="250">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="viveCercaRecinto" class="form-label">¿Vive cerca del recinto?<span
+                        class="text-danger">*</span></label>
+                    <select class="form-select" id="viveCercaRecinto" name="viveCercaRecinto" required>
+                      <option value="false">NO</option>
+                      <option value="true">SI</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-list-check"></i> Requisitos</h3>
+                <div class="requisitos-grid">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="esBoliviano" name="requisitos"
+                      value="esBoliviano">
+                    <label class="form-check-label" for="esBoliviano">Es boliviano</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="registradoPadronElectoral" name="requisitos"
+                      value="registradoPadronElectoral">
+                    <label class="form-check-label" for="registradoPadronElectoral">Registrado en padrón
+                      electoral</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cedulaIdentidadVigente" name="requisitos"
+                      value="cedulaIdentidadVigente">
+                    <label class="form-check-label" for="cedulaIdentidadVigente">CI vigente</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="disponibilidadTiempoCompleto" name="requisitos"
+                      value="disponibilidadTiempoCompleto">
+                    <label class="form-check-label" for="disponibilidadTiempoCompleto">Disponibilidad tiempo
+                      completo</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="celularConCamara" name="requisitos"
+                      value="celularConCamara">
+                    <label class="form-check-label" for="celularConCamara">Celular con cámara</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="android8_2OSuperior" name="requisitos"
+                      value="android8_2OSuperior">
+                    <label class="form-check-label" for="android8_2OSuperior">Android 8.2 o superior</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="lineaEntel" name="requisitos"
+                      value="lineaEntel">
+                    <label class="form-check-label" for="lineaEntel">Línea Entel</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="ningunaMilitanciaPolitica" name="requisitos"
+                      value="ningunaMilitanciaPolitica">
+                    <label class="form-check-label" for="ningunaMilitanciaPolitica">Ninguna militancia política</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sinConflictosInstitucion" name="requisitos"
+                      value="sinConflictosInstitucion">
+                    <label class="form-check-label" for="sinConflictosInstitucion">Sin conflictos con la
+                      institución</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="powerbank" name="requisitos" value="powerbank">
+                    <label class="form-check-label" for="powerbank">Cuenta con Power Bank</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="bi bi-file-earmark"></i> Documentación</h3>
+                <div class="row">
+                  <!-- Archivo CI -->
+                  <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                      <img src="/ci.jpg" class="card-img-top" alt="Documento CI">
+                      <div class="card-body">
+                        <label for="archivo_ci" class="form-label">
+                          Archivo CI <span class="text-danger">*</span>
+                          <small class="d-block text-muted">Cédula de identidad Anverso y Reverso (Solo PDF Max:
+                            1MB)</small>
+                        </label>
+                        <input type="file" class="form-control" id="archivo_ci" name="archivo_ci" accept=".pdf"
+                          required>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Archivo No Militancia -->
+                  <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                      <img src="img/nomil.jpg" class="card-img-top" alt="Documento No Militancia">
+                      <div class="card-body">
+                        <label for="archivo_no_militancia" class="form-label">
+                          No Militancia <span class="text-danger">*</span>
+                          <small class="d-block text-muted">Captura de pantalla No Tener Militancia Política, Verificar
+                            <a href="https://yoparticipo.oep.org.bo/auth/signin">yo participo</a> (Solo .jpg .jpeg .png
+                            Max: 1MB)</small>
+                        </label>
+                        <input type="file" class="form-control" id="archivo_no_militancia" name="archivo_no_militancia"
+                          accept="image/jpg, image/jpeg, image/png" required>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Hoja de Vida -->
+                  <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                      <img src="img/cv.jpg" class="card-img-top" alt="Hoja de Vida">
+                      <div class="card-body">
+                        <label for="curriculum" class="form-label">
+                          Hoja de Vida <span class="text-danger">*</span>
+                          <small class="d-block text-muted">Hoja De Vida No Documentada (Solo PDF Max: 1MB)</small>
+                        </label>
+                        <input type="file" class="form-control" id="curriculum" name="curriculum" accept=".pdf"" required>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Captura de Pantalla -->
+                  <div class=" col-md-3 mb-3">
+                        <div class="card h-100">
+                          <img src="img/android.webp" class="card-img-top" alt="Captura de Pantalla">
+                          <div class="card-body">
+                            <label for="capturaPantalla" class="form-label">
+                              Captura Celular <span class="text-danger">*</span>
+                              <small class="d-block text-muted">Captura de Pantalla Caracterìsticas del Equipo
+                                Celular(Solo .jpg .jpeg .png Max: 1MB)</small>
+                            </label>
+                            <input type="file" class="form-control" id="capturaPantalla" name="capturaPantalla"
+                              accept="image/jpg, image/jpeg, image/png" required>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+
+                  <div class="form-section">
+                    <h3><i class="bi bi-folder2-open"></i> EXPERIENCIA LABORAL</h3>
+
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <label for="experienciaEspecifica" class="form-label">¿Cuenta con experiencia en procesos
+                          electorales? <span class="text-danger">*</span></label>
+                        <select class="form-select" id="experienciaEspecifica" name="experienciaEspecifica" required>
+                          <option value="" selected disabled>Seleccione...</option>
+                          <option value="SI">SI</option>
+                          <option value="NO">NO</option>
+                        </select>
+                      </div>
+                      <div class="col-md-4">
+                        <label for="nroDeProcesos" class="form-label">indique el numero de procesos en los que participo
+                        </label>
+                        <select class="form-select" id="nroDeProcesos" name="nroDeProcesos" required disabled>
+                          <option value="" selected disabled>Seleccione...</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="6">6</option>
+                          <option value="7">7</option>
+                          <option value="8">8</option>
+                          <option value="9">9</option>
+                          <option value="10">10 o mas procesos</option>
+
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="reset" class="btn btn-outline-secondary me-md-2">
+                      <i class="bi bi-eraser"></i> Limpiar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                      <i class="bi bi-save"></i> Registrar Postulante
+                    </button>
+                  </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container"></div>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+
+</html>
